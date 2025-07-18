@@ -12,7 +12,6 @@ The output is saved as a pickle file containing the PyTorch Geometric heterogene
 ## Requirements
 
 * Python 3.10+
-* Your own `GenericInferenceGraph` implementation
 
 ### Install dependencies
 
