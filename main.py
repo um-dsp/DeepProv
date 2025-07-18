@@ -1,8 +1,10 @@
 import os
 import sys
 import torch
+from torchvision import datasets, transforms
 import pickle
 import argparse
+import random
 import importlib.util
 from torchvision.models import (
     resnet18, alexnet, vgg11, squeezenet1_0, densenet121, mobilenet_v2
@@ -37,10 +39,21 @@ if args.mode == 'pretrained':
         raise ValueError(f"Invalid model name. Choose from: {list(model_dict.keys())}")
     
     model = model_dict[args.model].eval()
-    dummy_input = torch.randn(1, 3, 224, 224)
 
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),          # Resize to match ImageNet input
+        transforms.ToTensor(),                  # Convert to [0, 1] tensor
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],   # ImageNet stats
+                             std=[0.229, 0.224, 0.225])
+    ])
+    
+    # Example: CIFAR-10 (original shape: [3, 32, 32])
+    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+
+    idx = random.randint(0, len(train_dataset) - 1)
+    input = train_dataset[idx][0] 
     graph_builder = GenericInferenceGraph(model, device='cpu')
-    graph_builder.extract_activations(dummy_input)
+    graph_builder.extract_activations(input)
     hetero_graph = graph_builder.build_hetero_graph()
 
     out_path = os.path.join(args.out_dir, f"{args.model}_graph.pkl")
