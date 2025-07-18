@@ -49,7 +49,7 @@ Use your own `.pth` model with its architecture and a pickled input tensor.
 #### Example
 
 ```bash
-python generate_graph.py \
+python main.py \
   --mode custom \
   --model_path ./checkpoints/mymodel.pth \
   --model_def ./models/mymodel.py \
