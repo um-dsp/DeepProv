@@ -1,4 +1,4 @@
-# Torch Inference Graph Extractor
+#  Inference Graph Extractor
 
 This project allows you to generate inference provenance graphs from PyTorch models, either from:
 
