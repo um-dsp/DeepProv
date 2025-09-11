@@ -3,6 +3,7 @@ cd ..
 cd ..
 cd artifact
 set -euo pipefail
+MPLBACKEND=Agg
 
 # ===== Config =====
 ENV_NAME="${ENV_NAME:-deepprov-env}"
