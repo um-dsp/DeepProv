@@ -176,7 +176,7 @@ with open("machine_summary.json","w") as f:
 print("Wrote machine_summary.json")
 PY
 echo "peparing ember dataset"
-curl -fL https://ember.elastic.co/ember_dataset_2018_2.tar.bz2 | tar -xj -C ./artifcat/data
+curl -fL https://ember.elastic.co/ember_dataset_2018_2.tar.bz2 | tar -xj -C ./artifact/data
 
 _crun python  - <<'PY'
 import inspect, importlib, pathlib, sys
