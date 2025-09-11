@@ -1,0 +1,7 @@
+For Ember dataset,We  claim in the paper in table 3 That we enhance Ember attack from the starting point up to certain benign and adversarial accuracies
+Acuracy under attack                Acuracy on benign 
+84.34%                              94.56%
+
+Note : Our reproducible experiments matches the paper results with +-1-2% for the results.
+For attack transferability please check tale 1 in the paper to refer to the paper claims for these results.
+The expect results for transferability will be oupted as a csv file named Attack_datasetname.csv in the expected folder.

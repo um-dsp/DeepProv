@@ -1,0 +1,29 @@
+# EMBER dataset from Git (PEP 508 form)
+ember @ git+https://github.com/elastic/ember.git
+numpy
+pandas
+scipy
+matplotlib
+tensorflow
+keras
+batchup
+scikit-learn
+lightgbm==3.3.3
+cleverhans==4.0.0
+foolbox==3.3.3
+captum
+autoattack @ git+https://github.com/fra31/auto-attack@master
+shap
+torch_dct
+h5py==3.10.0
+joblib==1.2.0
+decorator==5.1.1
+mnist==0.2.2
+lief
+tqdm>=4.31.0
+Pillow
+tqdm
+networkx==3.1
+dgl==1.1.0
+typing_extensions
+lief

@@ -1,0 +1,93 @@
+
+Model Architectures : 
+1. mnist_1.h5 : 
+    model = Sequential()
+    model.add(Dense(350, input_shape=input_shape, activation='relu')) #takes 784 inputs, has 30 neurons - activated using rectified linear unit
+    model.add(Dense(50, activation='relu'))# 20 neurons - input from previous 30 neurons
+    model.add(Dense(10, activation='softmax')) #output layer - has 10 output neurons # multiclass probability distribution
+
+2. mnist_2.h5 
+    model = Sequential()
+    model.add(Dense(256, input_shape=(784,), activation="sigmoid"))
+    model.add(Dense(128, activation="sigmoid"))
+    model.add(Dense(10, activation="softmax"))
+Test results - Loss: 0.10523388534784317 - Accuracy: 0.9677000045776367%
+
+
+3. model_3.h5
+    model = Sequential()
+    model.add(Dense(256, input_shape=(784,), activation="relu"))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(10, activation="softmax"))
+Test results - Loss: 0.07706296443939209 - Accuracy: 0.9787999987602234%
+
+
+4. Cuckoo_1
+ model = Sequential()
+    model.add(Dense(32, input_shape=(1549,), activation="relu"))
+    model.add(Dense(18, activation="relu"))
+    model.add(Dense(12, activation="relu"))
+    model.add(Dense(2, activation="softmax"))
+Test results - Loss: 0.14285679161548615 - Accuracy: 0.951556384563446%
+
+
+5. cifar_10_1
+
+model.add(Conv2D(64,(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(Conv2D(64,(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.4))
+    model.add(Conv2D(128,(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(Conv2D(128,(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.4))
+    model.add(Flatten())
+    model.add(Dense(1024,activation='relu'))
+    model.add(Dense(1024,activation='relu'))
+    model.add(Dense(10 , activation = 'softmax'))
+    Test results - Loss: 0.8268140554428101 - Accuracy: 0.7110000252723694%
+    Test results - Loss: 3.1866707801818848 - Accuracy: 0.17299999296665192% FGSM
+    Test results - Loss: 9.260448455810547 - Accuracy: 0.11860000342130661% PGD
+
+6. Ember 
+dense_98 (Dense)            (None, 4608)              10976256
+ batch_normalization_90 (Bat  (None, 4608)             18432
+ chNormalization)
+ dropout_90 (Dropout)        (None, 4608)              0
+ dense_99 (Dense)            (None, 4096)              18878464
+ batch_normalization_91 (Bat  (None, 4096)             16384
+ chNormalization)
+ dropout_91 (Dropout)        (None, 4096)              0
+ dense_100 (Dense)           (None, 3584)              14683648
+ batch_normalization_92 (Bat  (None, 3584)             14336
+ chNormalization)
+ dropout_92 (Dropout)        (None, 3584)              0
+ dense_101 (Dense)           (None, 3072)              11013120
+ batch_normalization_93 (Bat  (None, 3072)             12288
+ chNormalization)
+ dropout_93 (Dropout)        (None, 3072)              0
+ dense_102 (Dense)           (None, 2560)              7866880   
+ batch_normalization_94 (Bat  (None, 2560)             10240
+ chNormalization)
+ dropout_94 (Dropout)        (None, 2560)              0
+ dense_103 (Dense)           (None, 2048)              5244928
+ batch_normalization_95 (Bat  (None, 2048)             8192
+ chNormalization)
+ dropout_95 (Dropout)        (None, 2048)              0
+ dense_104 (Dense)           (None, 1536)              3147264
+ batch_normalization_96 (Bat  (None, 1536)             6144
+ chNormalization)
+ dropout_96 (Dropout)        (None, 1536)              0
+ dense_105 (Dense)           (None, 1024)              1573888
+ batch_normalization_97 (Bat  (None, 1024)             4096      
+ chNormalization)
+ dropout_97 (Dropout)        (None, 1024)              0
+ dense_106 (Dense)           (None, 512)               524800
+ batch_normalization_98 (Bat  (None, 512)              2048
+ chNormalization)
+ dropout_98 (Dropout)        (None, 512)               0
+ dense_107 (Dense)           (None, 128)               65664
+ batch_normalization_99 (Bat  (None, 128)              512       
+ chNormalization)
+ dropout_99 (Dropout)        (None, 128)               0
+ dense_108 (Dense)           (None, 2)                 258

@@ -1,0 +1,9 @@
+For mnist dataset,We  claim in the paper in table 2 That we enhance ALL 6 attacks from the starting point up to certain benign and adversarial accuracies
+Acuracy under attack                           || Acuracy on benign 
+FGSM  | PGD   |APGD-DLR| SPSA |Square  | SIT   ||FGSM   |PGD   |APGD-DLR |Square |SPSA   |SIT 
+73.10%| 73.76%| 62.84% |87.02%| 58.30% |78.68% ||97.11% |97.03%| 97.50%  |95.87% |97.10% |97.02%
+Note : Our reproducible experiments matches the paper results with +-1-2% for the results.
+
+
+For attack transferability please check tale 1 in the paper to refer to the paper claims for these results.
+The expect results for transferability will be oupted as a csv file named Attack.csv in the expected folder.

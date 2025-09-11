@@ -1,0 +1,6 @@
+For cuckoo dataset,We  claim in the paper in table 3 That we enhance the bitflip attack from the starting point up to certain benign and adversarial accuracies
+Acuracy under attack                Acuracy on benign
+87.85%                              94.96%
+Note : Our reproducible experiments matches the paper results with +-1-2% for the results.
+
+The expect results will be oupted as a csv file named Attack_datasetname.csv in the expected folder.
