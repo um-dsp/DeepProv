@@ -347,6 +347,8 @@ def generate_attack(model,x,y,attack,model_type="keras"):
         x_adv = hop_skip_jump_attack(model,x,np.inf,verbose=False,num_iterations=4)
     if(attack=='SIT'):
         attacker = SIA(model)
+        if y.dtype != torch.long:
+            y = y.long()
         x_adv = attacker(x,y)
         x_adv=x_adv+x
     if(attack=='SPSA'):
