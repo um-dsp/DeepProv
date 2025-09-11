@@ -203,7 +203,7 @@ _crun python - <<'PY'
 import ember
 ember.create_vectorized_features("./artifact/data/ember2018/")
 PY
-find artifact/Claims/ -type f -name "run.sh" -print -exec chmod 0755 {} \;
+find Claims/ -type f -name "run.sh" -print -exec chmod 0755 {} \;
 echo "==> Installation complete."
 echo
 echo "Use the env WITHOUT activation (safest, base Python untouched):"
