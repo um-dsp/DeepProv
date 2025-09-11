@@ -518,7 +518,11 @@ if __name__ == "__main__":
         print("Results on different attacks \n ###########################")
         df=pd.DataFrame(data=[[attack]+[permutation]+res_orders[permutation]],columns=["Studied Attack","layers order","acc_ben"]+attacks)
         print(df)
-        df.to_csv("../Claims/"+dataset+"/expected/"+attack+".csv")
+        out_dir = os.path.join("..", "Claims", dataset, "expected")
+        os.makedirs(out_dir, exist_ok=True)
+        
+        out_path = os.path.join(out_dir, f"{attack}.csv")
+        df.to_csv(out_path, index=False)  
         print("Expected output saved under "+ "../Claims/"+dataset+"/expected/"+attack+".csv")
 
 
