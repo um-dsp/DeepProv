@@ -212,6 +212,3 @@ echo
 echo "If you prefer to activate later, do it in a sanitized subshell to avoid PYTHONPATH issues:"
 echo "  env -u PYTHONPATH PYTHONNOUSERSITE=1 CONDA_NO_PLUGINS=1 ${CONDA_BIN} shell.bash hook >/tmp/conda_hook.sh"
 echo "  source /tmp/conda_hook.sh && conda activate ${ENV_NAME}"
-echo
-echo "Lite run:        ${CONDA_BIN} run -n ${ENV_NAME} bash run_lite.sh"
-echo "Full run (GPU):  ${CONDA_BIN} run -n ${ENV_NAME} bash run_full.sh"
