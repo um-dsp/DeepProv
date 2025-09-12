@@ -12,7 +12,7 @@ try:
     absl_logging.set_verbosity(absl_logging.ERROR)
 except Exception:
     pass
-
+from library.actions_selections import test_robustness
 from library.utils import get_dataset,generate_attack, printProgressBar,gen_graph_data,get_checkpoint_name,get_activations_pth
 from library.Activations import Activations
 from library.train import evaluate,evaluate_model,get_model
@@ -64,7 +64,7 @@ evaluating the models
 
 supported_dataset = ['cifar10' ,'mnist', 'cuckoo','ember'] 
 supported_attacks =  ['FGSM','CW','PGD',"Bit-Flip","BIM",'Square','APGD-CE','APGD-DLR','Emb-Att',"SPSA","HSJA","SIT",None]
-pre_trained_models = ['cifar10_1','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']
+pre_trained_models = ['cifar10_2','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']
 folders = ['Ground_Truth_tf' , 'Benign_tf' ,'Adversarial_tf','Ground_Truth_pth',"test", 'Benign_pth' ,'Adversarial_pth']
 tasks=["graph","default"]
 model_types=["keras","pytorch"]
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     print(f'\n[GEN ACT] Dataset : {dataset} | Model : {model_name} | Attack : {attack} | Checkpoint : {save_path} \n')
     #Use the below  function to generate activations for different datasets/attacks
       # Cifar generation Code
-    Nbr_graphs={'mnist':100,'ember':1000,'cuckoo':1000}
+    Nbr_graphs={'mnist':100,'cifar10':100,'ember':1000,'cuckoo':1000}
 
     # Ground Truth -> We Use Train Data 
     # Adersarial | Benign -> We use Test Data
@@ -270,7 +270,7 @@ if __name__ == "__main__":
             X= X_test 
             Y = y_test
     else:
-        train_loader,test_loader=get_dataset(dataset,False,model_type=model_type,shuffle=False,batch_size=200,attack=attack)
+        train_loader,test_loader=get_dataset(dataset,False,model_type=model_type,shuffle=False,batch_size=200,attack=attack,model_name=model_name)
         if(folder in ['Ground_Truth_pth']):
             data_loader=train_loader
         else:
@@ -303,7 +303,6 @@ if __name__ == "__main__":
         model=model.to(device)
         evaluate_model(model,data_loader,device=device)
     
-        
     if(attack):
         if model_type=="keras" : 
             X_adv=X.copy()
@@ -325,18 +324,19 @@ if __name__ == "__main__":
             for (batch_X, batch_y) in data_loader:
                 print('Generating {} from sample {} to {}'.format(attack, i * batch_size, (i + 1) * batch_size - 1))
                 batch_X=batch_X.to(device)
+                batch_y=batch_y.to(device)
                 adv_batch_X = generate_attack(model, batch_X, batch_y, attack,model_type=model_type)
                 adv_batch_X=adv_batch_X.to("cpu")
                 X_adv[i * batch_size:(i + 1) * batch_size] = adv_batch_X
                 i += 1
                 if task=="graph":
                     if ((i + 1) * batch_size)>(3000):
+                        X=X_adv
                         break
-            X=X_adv
+            
             dataset_loader=[(x,y) for x,y in zip(X,Y)]
             dataset_loader= DataLoader(dataset_loader, batch_size=200, shuffle=True)
             evaluate_model(model,dataset_loader,device=device)
-    #print('accuracy on all data: ',compute_accuracy_tf(model,X,Y))
     if task=="graph" :
         gen_graph_data(X,Y,model,save_path,model_type=model_type,attack=attack,dim=dim,batch_size=Nbr_graphs[dataset],stop_point=stop_b,nbr_samples_per_class=Nbr_graphs[dataset])
     else:
