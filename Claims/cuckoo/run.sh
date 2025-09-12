@@ -66,4 +66,4 @@ run main.py -dataset cuckoo -model_name cuckoo_1 -folder Ground_Truth_pth \
   -attr_folder data/attributions_data/
 
 
-echo "[OK] Full pipeline completed Check expected folders per claim. 
+echo "[OK] Full pipeline completed Check expected folders per claim."
