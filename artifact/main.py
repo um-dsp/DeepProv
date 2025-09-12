@@ -286,7 +286,7 @@ if __name__ == "__main__":
     selected_layers=[" layer "+str(j) for j in range(len(layer_dims))]#possible values [" layer 0"...," layer n-1"]
     X_adv,X_test,acc_or,acc_un_a=test_robustness(model,X_test,Y_test,attack,device)
     print("ben acc :",acc_or," adv acc:", acc_un_a)
-    if dataset=="mnist" and attack!="square":
+    if dataset in ["mnist","cifar10"] and attack in ["FGSM","PGD","APGD-DLR"]:
         X_attacked=None
     else:
         X_attacked=X_adv
@@ -506,9 +506,9 @@ if __name__ == "__main__":
         model=load_DP_model(model_name,layer_ind_dims,ben_distr,alpha,beta)
         acc_un_attacks=[]
         for att in attacks:
-            if dataset=="mnist" and attack!="Square":
+            if dataset in ["mnist","cifar10"] and attack in ["FGSM","PGD","APGD-DLR"]:
                 X_adv,X,acc_ben,acc_adv=test_robustness(model,X_test_all,Y_test_all,att,device,X_adv=None)
-            elif attack=="Square" and att!="Square":
+            elif attack!=att and attack in ["Square","SPSA","SIT"]:
                 X_adv,X,acc_ben,acc_adv=test_robustness(model,X_test_all,Y_test_all,att,device,X_adv=None)
             else:
                 X_adv,X,acc_ben,acc_adv=test_robustness(model,X_test_all,Y_test_all,att,device,X_adv=X_attacked)
@@ -518,11 +518,7 @@ if __name__ == "__main__":
         print("Results on different attacks \n ###########################")
         df=pd.DataFrame(data=[[attack]+[permutation]+res_orders[permutation]],columns=["Studied Attack","layers order","acc_ben"]+attacks)
         print(df)
-        out_dir = os.path.join("..", "Claims", dataset, "expected")
-        os.makedirs(out_dir, exist_ok=True)
-        
-        out_path = os.path.join(out_dir, f"{attack}.csv")
-        df.to_csv(out_path, index=False)  
+        df.to_csv("../Claims/"+dataset+"/expected/"+attack+".csv")
         print("Expected output saved under "+ "../Claims/"+dataset+"/expected/"+attack+".csv")
 
 
