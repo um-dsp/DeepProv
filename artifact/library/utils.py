@@ -1362,80 +1362,68 @@ def load_cuckoo(batch_size):
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor.unsqueeze(1))
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
     return(train_loader, test_loader,train_dataset,test_dataset)
-def load_ember(batch_size,attack,data_size=600000):
+def load_ember(batch_size, attack, data_size=60000, root="./data/ember2018/",
+               balance_per_class=5000, num_workers=2, pin_memory=True):
+    import os, pickle
+    import numpy as np, torch
+    from torch.utils.data import Dataset, DataLoader
     import ember
-    data_size=6000000
-    X_train, y_train, X_test, y_test = ember.read_vectorized_features("./data/ember2018/")
-    x=[]
-    y_inter=[]
-    for i,y in enumerate(y_train):
-        if int(y)!=-1:
-            x.append(X_train[i])
-            y_inter.append(y_train[i])
-    X_train,y_train=np.array(x),np.array(y_inter)
-    X_train, y_train, X_test, y_test=X_train[:data_size], y_train[:data_size], X_test, y_test
-    # Assuming X_train and y_train are NumPy arrays or similar
-    # Normalize X_train and X_test
-    scaler = StandardScaler()
-    if not(attack):
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
 
-    else:
-        X_train_scaled = X_train
-        X_test_scaled=X_test
+    # 1) Read (these are memmaps in EMBER; cheap if you avoid full copies)
+    X_train, y_train, X_test, y_test = ember.read_vectorized_features(root)
 
-    # Convert to PyTorch tensors
-    X_train_tensor = torch.tensor(X_train_scaled, dtype=torch.float)
-    y_train_tensor = torch.tensor(y_train, dtype=torch.float)
-    X_test_tensor = torch.tensor(X_test_scaled, dtype=torch.float)
-    y_test_tensor = torch.tensor(y_test, dtype=torch.float)
-    x_filtred=X_train_tensor.clone()
-    x_filtred=x_filtred[:10000]
-    c_1=0
-    c_2=0
-    k=0
-    Y_filtred=y_train_tensor.clone()
-    Y_filtred=Y_filtred[:10000]
-    for i,y in enumerate(y_train_tensor):
-        if y==0 and c_1<5000 :
-            x_filtred[k]=X_train_tensor[i]
-            Y_filtred[k]=y
-            c_1+=1
-            k+=1
-        elif y==1 and c_2<5000:
-            x_filtred[k]=X_train_tensor[i]
-            Y_filtred[k]=y
-            c_2+=1 
-            k+=1
-    X_train_tensor=x_filtred
-    y_train_tensor=Y_filtred
-    x_filtred=X_test_tensor.clone()
-    x_filtred=x_filtred[:10000]
-    c_1=0
-    c_2=0
-    k=0
-    Y_filtred=y_test_tensor.clone()
-    Y_filtred=Y_filtred[:10000]
-    for i,y in enumerate(y_test_tensor):
-        if y==0 and c_1<5000 :
-            x_filtred[k]=X_test_tensor[i]
-            Y_filtred[k]=y   
-            c_1+=1
-            k+=1
-        elif y==1 and c_2<5000:
-            x_filtred[k]=X_test_tensor[i]
-            Y_filtred[k]=y
-            c_2+=1 
-            k+=1
-    X_test_tensor=x_filtred
-    y_test_tensor=Y_filtred
-    # Create TensorDatasets and DataLoaders
+    # 2) Keep only labeled rows via indices (no materialization)
+    idx_train_all = np.flatnonzero(y_train != -1)
+    idx_test_all  = np.flatnonzero(y_test  != -1)
 
-    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False)
+    # Limit training size early (on indices)
+    if data_size is not None:
+        idx_train_all = idx_train_all[:data_size]
 
-    test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+    # 3) (Optional) balance by indices only (no clones)
+    def take_balanced(idx, y, k):
+        if not k: return idx
+        i0 = idx[y[idx] == 0][:k]
+        i1 = idx[y[idx] == 1][:k]
+        return np.concatenate([i0, i1])
 
-    return(train_loader, test_loader,train_dataset,test_dataset)
+    idx_train = take_balanced(idx_train_all, y_train, balance_per_class)
+    idx_test  = take_balanced(idx_test_all,  y_test,  balance_per_class)
+
+    # 4) Load scaler stats and keep them as float32 (no transform copies)
+    mean = scale = None
+    if not attack:
+        with open('./data/scaleremb.pickle', 'rb') as f:
+            scaler = pickle.load(f)
+        mean  = np.asarray(getattr(scaler, "mean_",  None), dtype=np.float32)
+        scale = np.asarray(getattr(scaler, "scale_", None), dtype=np.float32)
+
+    # 5) Lightweight Dataset that scales per-sample (or per-batch, see note)
+    class EmberDS(Dataset):
+        def __init__(self, X, y, indices, mean=None, scale=None):
+            self.X, self.y, self.idx = X, y, indices.astype(np.int64, copy=False)
+            self.mean, self.scale = mean, scale
+        def __len__(self): return len(self.idx)
+        def __getitem__(self, i):
+            j = int(self.idx[i])
+            # row -> float32 array without huge copies
+            x = np.asarray(self.X[j], dtype=np.float32, order='C')
+            if self.mean is not None and self.scale is not None:
+                x = (x - self.mean) / self.scale
+            y = int(self.y[j])
+            return torch.from_numpy(x), torch.tensor(y, dtype=torch.long)
+
+    train_ds = EmberDS(X_train, y_train, idx_train, mean, scale)
+    test_ds  = EmberDS(X_test,  y_test,  idx_test,  mean, scale)
+
+    train_loader = DataLoader(
+        train_ds, batch_size=batch_size, shuffle=True,
+        num_workers=num_workers, pin_memory=pin_memory,
+        persistent_workers=(num_workers > 0)
+    )
+    test_loader = DataLoader(
+        test_ds, batch_size=batch_size, shuffle=False,
+        num_workers=num_workers, pin_memory=pin_memory,
+        persistent_workers=(num_workers > 0)
+    )
+    return train_loader, test_loader, train_ds, test_ds
