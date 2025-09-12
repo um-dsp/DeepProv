@@ -178,31 +178,8 @@ PY
 echo "peparing ember dataset"
 curl -fL https://ember.elastic.co/ember_dataset_2018_2.tar.bz2 | tar -xj -C ./artifact/data
 
-_crun python  - <<'PY'
-import inspect, importlib, pathlib, sys
-
-# locate the installed file
-features = importlib.import_module("ember.features")
-path = pathlib.Path(inspect.getfile(features))
-txt = path.read_text()
-
-# the buggy call wraps a single string like: transform([raw_obj['entry']])
-fixed = txt.replace(
-    'FeatureHasher(50, input_type="string").transform([raw_obj[\'entry\']])',
-    'FeatureHasher(50, input_type="string").transform([[raw_obj[\'entry\']]])'
-)
-
-if txt == fixed:
-    print("Nothing replaced (file may already be patched):", path)
-else:
-    path.write_text(fixed)
-    print("Patched:", path)
-PY
-
-_crun python - <<'PY'
-import ember
-ember.create_vectorized_features("./artifact/data/ember2018/")
-PY
+MPLBACKEND=Agg "$HOME/miniconda3/bin/conda" run -n deepprov-env --no-capture-output python -c "import importlib,inspect,pathlib,re; p=pathlib.Path(inspect.getfile(importlib.import_module('ember.features'))); s=p.read_text(encoding='utf-8'); pat=re.compile(r'(FeatureHasher\\(\\s*50\\s*,\\s*input_type\\s*=\\s*[\"\\']string[\"\\']\\s*\\)\\s*\\.transform\\()\\s*\\[\\s*raw_obj\\[\\s*([\"\\'])entry\\2\\s*\\]\\s*\\]\\s*(\\))'); ns,n=pat.subn(r'\\1[[raw_obj[\\2entry\\2]]]\\3', s); (p.write_text(ns, encoding='utf-8'), print(f'[OK] patched {n} occurrence(s) in {p}')) if n else print(f'[INFO] no patch needed: {p}')"
+MPLBACKEND=Agg "$HOME/miniconda3/bin/conda" run -n deepprov-env --no-capture-output   python -c "import ember; ember.create_vectorized_features('./artifact/data/ember2018/')"
 find Claims/ -type f -name "run.sh" -print -exec chmod 0755 {} \;
 echo "==> Installation complete."
 echo
