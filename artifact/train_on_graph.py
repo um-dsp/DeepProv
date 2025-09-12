@@ -32,7 +32,7 @@ from argparse import ArgumentParser
 
 supported_dataset = ['cifar10' ,'mnist', 'cuckoo','ember'] 
 supported_attacks = ['FGSM','CW','PGD',"Bit-Flip","BIM",'Square','APGD-CE','APGD-DLR','Emb-Att',"SPSA","HSJA","SIT",None]
-pre_trained_models = ['cifar10_1','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']
+pre_trained_models = ['cifar10_2','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']
 folders = ['Ground_Truth_tf' , 'Benign_tf' ,'Adversarial_tf','Ground_Truth_pth' , 'Benign_pth' ,'Adversarial_pth']
 tasks=["graph","default","GNN_explainer"]
 model_types=["keras","pytorch"]
@@ -126,8 +126,8 @@ if __name__ == "__main__":
         if conv_exis:
             data_all=load_graph_data(dataset,model_name,attack=None,folder=folder,nbr_l_batches=1)
             data=data_all[0][0]
-            model = HGT(hidden_channels=64, out_channels=2,
-                        num_heads=2, data=data,num_layers=2)
+            model = HGT(hidden_channels=64,metadata=data.metadata(), out_channels=2,
+                        num_heads=2,num_layers=2)
             batch_size =1
         else:
             model = GNN_Classifier(1, 20, 2)
@@ -143,8 +143,8 @@ if __name__ == "__main__":
         if conv_exis:
             data_all=load_graph_data(dataset,model_name,attack=None,folder=folder,nbr_l_batches=1)
             data=data_all[0][0]
-            model = HGT(hidden_channels=64, out_channels=2,
-                        num_heads=2, data=data,num_layers=2)
+            model = HGT(hidden_channels=64,metadata=data.metadata(), out_channels=2,
+                        num_heads=2,num_layers=2)
             gs=DataLoader([data],batch_size=1, shuffle=False)
             for graph_batch in gs:
                 model_output(model,graph_batch,"hetero")   
