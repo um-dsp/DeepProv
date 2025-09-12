@@ -205,13 +205,13 @@ def train_ember():
     #validator = Validator(1,1)
     #validator.accuracy_from_file('./adversarial/cuckoo/CKO/cuckoo_1')
 def get_model(name,model_type="keras"):
-    if(name not in ['cifar10_1','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']):
+    if(name not in ['cifar10_2','cuckoo_1','ember_1','mnist_1','mnist_2','mnist_3']):
          raise ValueError('Model Not Supported')
     if model_type=="keras":
         model=load_model("./models/"+name+".h5")
     else:
         if "cifar10" in name:
-            model=Cifar10_Net()
+            model=resnet("resnet18", num_classes=10)
         elif "mnist" in name:
             if "1" in name:
                 model=NeuralMnist()
@@ -457,6 +457,178 @@ def train_mnist_pytorch(path=None):
     # save the model
     if path is not None:
         torch.save(model.state_dict(), path)
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class Normalization(nn.Module):
+    """
+    Standardizes the input data.
+    Arguments:
+        mean (list): mean.
+        std (float): standard deviation.
+        device (str or torch.device): device to be used.
+    Returns:
+        (input - mean) / std
+    """
+    def __init__(self, mean, std):
+        super(Normalization, self).__init__()
+        num_channels = len(mean)
+        self.mean = torch.FloatTensor(mean).view(1, num_channels, 1, 1)
+        self.sigma = torch.FloatTensor(std).view(1, num_channels, 1, 1)
+        self.mean_cuda, self.sigma_cuda = None, None
+
+    def forward(self, x):
+        if x.is_cuda:
+            if self.mean_cuda is None:
+                self.mean_cuda = self.mean.cuda()
+                self.sigma_cuda = self.sigma.cuda()
+            out = (x - self.mean_cuda) / self.sigma_cuda
+        else:
+            out = (x - self.mean) / self.sigma
+        return out
+
+
+class BasicBlock(nn.Module):
+    """
+    Implements a basic block module for Resnets.
+    Arguments:
+        in_planes (int): number of input planes.
+        out_planes (int): number of output filters.
+        stride (int): stride of convolution.
+    """
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+
+class Bottleneck(nn.Module):
+    """
+    Implements a basic block module with bottleneck for Resnets.
+    Arguments:
+        in_planes (int): number of input planes.
+        out_planes (int): number of output filters.
+        stride (int): stride of convolution.
+    """
+    expansion = 4
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(Bottleneck, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, self.expansion * planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(self.expansion * planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = F.relu(self.bn2(self.conv2(out)))
+        out = self.bn3(self.conv3(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+
+class ResNet(nn.Module):
+    """
+    ResNet model
+    Arguments:
+        block (BasicBlock or Bottleneck): type of basic block to be used.
+        num_blocks (list): number of blocks in each sub-module.
+        num_classes (int): number of output classes.
+        device (torch.device or str): device to work on. 
+    """
+    def __init__(self, block, num_blocks, num_classes=10, device='cpu'):
+        super(ResNet, self).__init__()
+        self.in_planes = 64
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.linear = nn.Linear(512 * block.expansion, num_classes)
+
+    def _make_layer(self, block, planes, num_blocks, stride):
+        strides = [stride] + [1] * (num_blocks - 1)
+        layers = []
+        for stride in strides:
+            layers.append(block(self.in_planes, planes, stride))
+            self.in_planes = planes * block.expansion
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out=self.conv1(x)
+        out = F.relu(self.bn1(out))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out
+    def get_activation_functions(self):
+        activation_functions = {}
+        activation_functions['conv1'] = 'None'
+        activation_functions['bn1'] = nn.ReLU()
+        activation_functions['layer1'] = 'None'
+        activation_functions['layer2'] = 'None'
+        activation_functions['layer3'] = 'None'
+        activation_functions['layer4'] = 'None'
+        activation_functions['layer5'] = 'None'
+        return activation_functions
+def resnet(name, num_classes=10, pretrained=False, device='cpu'):
+    """
+    Returns suitable Resnet model from its name.
+    Arguments:
+        name (str): name of resnet architecture.
+        num_classes (int): number of target classes.
+        pretrained (bool): whether to use a pretrained model.
+        device (str or torch.device): device to work on.
+    Returns:
+        torch.nn.Module.
+    """
+    if name == 'resnet18':
+        return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, device=device)
+    elif name == 'resnet34':
+        return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, device=device)
+    elif name == 'resnet50':
+        return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, device=device)
+    elif name == 'resnet101':
+        return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, device=device)
+    
+    raise ValueError('Only resnet18, resnet34, resnet50 and resnet101 are supported!')
+    return
 
 def evaluate_model(model, test_loader,device='cpu'):
 
@@ -484,7 +656,7 @@ def evaluate_model(model, test_loader,device='cpu'):
             
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct / total
-    # print(f'Accuracy of the model on the test images: {accuracy}%')
+    print(f'Accuracy of the model on the test images: {accuracy}%')
 def train_cuckoo(train_loader):
     model = MLPClassifierPyTorch()
     criterion = nn.BCEWithLogitsLoss()  # Updated loss function for binary classification
@@ -592,35 +764,50 @@ def binary_acc(y_pred, y_test):
     
     return acc
 
-class HGT(torch.nn.Module):
-    def __init__(self, hidden_channels,data, out_channels, num_heads, num_layers):
+import torch
+from torch import nn
+from torch_geometric.nn import HGTConv, Linear, global_mean_pool
+
+class HGT(nn.Module):
+    def __init__(self, hidden_channels, metadata, out_channels, num_heads=2, num_layers=2):
         super().__init__()
+        node_types, _ = metadata
 
-        self.lin_dict = torch.nn.ModuleDict()
-        for node_type in data.node_types:
-            self.lin_dict[node_type] = Linear(-1, hidden_channels)
+        # One input projection per node type; -1 = lazy infer in_channels.
+        self.lin_dict = nn.ModuleDict({
+            nt: Linear(-1, hidden_channels) for nt in node_types
+        })
 
-        self.convs = torch.nn.ModuleList()
-        for _ in range(num_layers):
-            conv = HGTConv(hidden_channels, hidden_channels, data.metadata(),
-                           num_heads, group='sum')
-            self.convs.append(conv)
+        # Stack HGTConv layers (do NOT pass aggr here)
+        self.convs = nn.ModuleList([
+            HGTConv(hidden_channels, hidden_channels, metadata, heads=num_heads)
+            for _ in range(num_layers)
+        ])
 
-        self.lin = Linear(hidden_channels, out_channels)
+        self.lin_out = Linear(hidden_channels, out_channels)
 
-    def forward(self, x_dict, edge_index_dict):
-        inter_x_dict=x_dict.copy()
-        for node_type, x in inter_x_dict.items():
-            inter_x_dict[node_type] = self.lin_dict[node_type](x).relu_()
+    def forward(self, x_dict, edge_index_dict, batch_dict):
+        # 1) Project each node type to hidden dim
+        x_dict = {nt: self.lin_dict[nt](x).relu() for nt, x in x_dict.items()}
+
+        # 2) HGT layers; keep previous features when a type gets no messages
         for conv in self.convs:
-            inter_x_dict = conv(inter_x_dict, edge_index_dict)
-        hg=0
-        i=0
-        for node_type, x in inter_x_dict.items():
-            inter_x_dict[node_type].x = torch_geometric.utils.scatter(x, batch[i],reduce='mean')
-            hg=hg+inter_x_dict[node_type].x
-            i+=1
-        return self.lin(hg)
+            new_x = conv(x_dict, edge_index_dict)          # may have None for some types
+            x_dict = {nt: (new_x.get(nt, None) if new_x.get(nt, None) is not None else x)
+                      for nt, x in x_dict.items()}
+
+        # 3) Graph-level readout: pool per node type, then sum (or concat)
+        pooled = []
+        for nt, x in x_dict.items():
+            if x is None:
+                continue
+            pooled.append(global_mean_pool(x, batch_dict[nt]))
+
+        # combine node-type representations (sum is common for HGT)
+        hg = torch.stack(pooled, dim=0).sum(dim=0) if len(pooled) > 1 else pooled[0]
+
+        # 4) Final classifier/regressor head
+        return self.lin_out(hg)
 def train_on_activations(X_train,Y_train,X_test,Y_test,model_name,model_path):
     
     if os.path.exists(model_path):
@@ -748,7 +935,12 @@ def model_output(model,graphs_batch,data_type):
     global batch
     if data_type=="hetero":
         batch=[graphs_batch[i].batch for i in graphs_batch.node_types]
-        out = model(graphs_batch.x_dict, graphs_batch.edge_index_dict)
+        out = model(
+            graphs_batch.x_dict,
+            graphs_batch.edge_index_dict,
+            {nt: graphs_batch[nt].batch for nt in graphs_batch.node_types}
+        )
+
     else:
         batch=graphs_batch.batch
         out = model(graphs_batch.x,graphs_batch.edge_index)
@@ -766,9 +958,8 @@ def train_GNN(model,opt,num_epochs,batch_size,data_size,model_name,model_type,at
         data_type="homo"
     # Training loop
     if torch.cuda.is_available():
-        num_gpus = torch.cuda.device_count()
-        gpu_num=1
-        model=model.cuda(gpu_num)
+
+        model=model.cuda()
 
     for epoch in tqdm(range(num_epochs)):
         pred_acc = 0
@@ -780,7 +971,7 @@ def train_GNN(model,opt,num_epochs,batch_size,data_size,model_name,model_type,at
 
             for batch_graphs ,batch_labels in dataloader:
                 if torch.cuda.is_available():
-                    batch_graphs=batch_graphs.cuda(gpu_num)
+                    batch_graphs=batch_graphs.cuda()
                 # Convert batch of DGL graphs to PyTorch Geometric Data objects
                 # Prepare features and labels
                 labels = batch_labels
@@ -898,102 +1089,9 @@ class MNIST_CNN(nn.Module):
         return activation_functions
 from torch_geometric.data import HeteroData
 from torch_geometric.explain import Explainer, CaptumExplainer
+from typing import List, Union, Dict
 
-def explainer_GNN(model,mode):
-    explainer = Explainer(
-        model,  # It is assumed that model outputs a single tensor.
-        algorithm=CaptumExplainer(mode),
-        explanation_type='model',
-        node_mask_type='attributes',
-        edge_mask_type='object',
-        model_config = dict(
-            mode='binary_classification',
-            task_level="graph",
-            return_type='probs',  # Model returns probabilities.
-        ),
-    )
-    return(explainer)
-"""
-def get_nodes_data_g(data_loader,all_nodes,model,nodes_weights):
-    nb_nodes = len(all_nodes)
-    for batche,label,nodes,y_class in tqdm(data_loader):
-        explainer=explainer_GNN(model)
-        global batch
-        batch=batche.batch
-        hetero_explanation = explainer(
-        batche.x,
-        batche.edge_index,target=label,index=0)
-        node_scores=hetero_explanation.node_mask/hetero_explanation.node_mask.max()
-        for i in range(nb_nodes):
-            if all_nodes[i] in nodes.keys():
-                nodes_weights[i].append(float(node_scores[int(nodes[all_nodes[i]])].max()))
-    return(nodes_weights)
-"""
-    
-#Attributions generation with defined explainer
-def get_nodes_data_g(data_loader,model,mode,conv_exis=False):
-    samples_attributes=[]
-    for batche,label,nodes,y_class,pred_state in tqdm(data_loader):
-        
-        if torch.cuda.is_available():
-            batche=batche.cuda(gpu_num)
-            label=label.cuda(gpu_num)
-        global batch
-        if conv_exis:
-            explainer=explainer_GNN(model,mode)
-            batch=[batche[i].batch for i in batche.node_types]
-            x={}
-            for i in batche.x_dict.keys():
-                x[i]=batche.x_dict[i].requires_grad_(False)
-            edge_index=batche.edge_index_dict
-        else:
-            explainer=explainer_GNN(model,mode)
-            batch=batche.batch
-            x=batche.x
-            edge_index=batche.edge_index
-        hetero_explanation = explainer(
-        x,
-        edge_index,target=label,index=0)
-        hetero_explanation.cpu()
-        samples_attributes.append(hetero_explanation)
-    return(samples_attributes)
-"""
-#Loading data , explain the GNN model and store the attirubtions
-def attri_gene(dataset,model,folder,model_name,nbr_batch,mode,task,attack=None):
-    if task=="GNN_explainer"
-        save_path="data_1/"+mode
-        if not (os.path.exists(save_path)):
-                os.makedirs(save_path)
-        if attack:
-            id="_attributes_"+attack
-        else:
-            id="_attributes_ben"
-        for nbr in range(nbr_batch):
-            data_ben=load_graph_data(dataset,model_name,attack=attack,folder=folder,nbr_l_batches=nbr)
-            data_ben=DataLoader(data_ben, batch_size=1, shuffle=False)
-            samples_attributes=get_nodes_data_g(data_ben,model,mode)
-            with open(save_path+'/batch_'+str(nbr)+id+model_name+'_'+attack+'.pickle', 'wb') as handle:
-                pickle.dump(samples_attributes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            samples_attributes=[]
-"""
 
-#Define the explainer for GNN
-from torch_geometric.data import HeteroData
-from torch_geometric.explain import Explainer, CaptumExplainer
-def explainer_GNN(model,mode,edge_mask_type="object"):
-    explainer = Explainer(
-        model,  # It is assumed that model outputs a single tensor.
-        algorithm=CaptumExplainer(mode),
-        explanation_type='model',
-        node_mask_type='attributes',
-        edge_mask_type=edge_mask_type,
-        model_config = dict(
-            mode='binary_classification',
-            task_level="graph",
-            return_type='probs',  # Model returns probabilities.
-        ),
-    )
-    return(explainer)
 def train_cifar10_pytorch(path,epochs=20):
     '''train a CIFAR10 pytorch model'''
     
@@ -1029,3 +1127,110 @@ def train_cifar10_pytorch(path,epochs=20):
     # save the model
     if path is not None:
         torch.save(model.state_dict(), path)
+
+
+
+def explainer_GNN(model, mode: str, edge_mask_type: Union[str, None] = "object"):
+    """
+    mode: a Captum algorithm name accepted by torch_geometric.explain.CaptumExplainer,
+          e.g., 'integrated_gradients', 'saliency', 'input_x_gradient', 'gradient_shap', etc.
+    edge_mask_type: 'object' (mask per edge), 'scalar', or None to disable edge masks.
+    """
+    # If your model returns logits (recommended), keep return_type='logits'.
+    # If your model returns probabilities, change to return_type='probs'.
+    return Explainer(
+        model=model,
+        algorithm=CaptumExplainer(mode),
+        explanation_type="model",
+        node_mask_type="attributes",
+        edge_mask_type=edge_mask_type,
+        model_config=dict(
+            mode="binary_classification",   # or 'multiclass_classification'
+            task_level="graph",             # graph-level task
+            return_type="probs",           # <-- change to 'probs' if your model returns probabilities
+        ),
+    )
+
+@torch.no_grad()
+def _num_graphs_from_hetero(b: HeteroData) -> int:
+    # Use any node type's batch vector to infer number of graphs
+    for nt in b.node_types:
+        if hasattr(b[nt], "batch") and b[nt].batch is not None:
+            return int(b[nt].batch.max().item()) + 1
+    # Fallback if no batch attr found (treat as 1 big graph)
+    return 1
+def _class_index(label_batch: torch.Tensor, idx: int) -> int:
+    """Return scalar class index for graph `idx` from various label shapes."""
+    t = label_batch[idx]
+    if t.ndim == 0:                 # scalar
+        return int(t.item())
+    if t.ndim == 1:                 # e.g., [C] one-hot or [1]
+        if t.numel() == 1:
+            return int(t.item())
+        return int(t.argmax(dim=0).item())
+    # fallback: flatten then argmax
+    return int(t.view(-1).argmax(dim=0).item())
+from typing import List, Union, Dict
+def get_nodes_data_g(data_loader, model, mode: str, conv_exis: bool = False):
+    """
+    Generates one explanation per graph in each batch.
+
+    data_loader should yield (batch, label, *_) where:
+      - batch is Data or HeteroData (already collated by a PyG loader),
+      - label is shape [B] (graph labels).
+
+    conv_exis=True  -> heterogeneous (HeteroData)
+    conv_exis=False -> homogeneous (Data)
+    """
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    model = model.to(device)
+    model.eval()  # Captum will still compute input grads; we just disable dropout, etc.
+
+    samples_explanations: List = []
+    global batch
+
+    for batche, label, *rest in tqdm(data_loader):
+        # Move batch & labels to device
+        if isinstance(batche, (Data, HeteroData)):
+            batche = batche.to(device)
+        else:
+            # If your loader wraps differently, ensure batch.to(device) is called
+            pass
+        label = label.to(device)
+
+        if conv_exis:  # --- Heterogeneous graph path ---
+            # Build inputs for Explainer
+            x_dict: Dict[str, torch.Tensor] = {nt: batche[nt].x.detach().float().clone().requires_grad_(True)
+                                               for nt in batche.node_types}
+            edge_index_dict = {et: batche[et].edge_index for et in batche.edge_types}
+            batch_dict = {nt: batche[nt].batch for nt in batche.node_types}
+
+            # Build the explainer (no edge mask -> node attributions only) or keep object masks
+            expl = explainer_GNN(model, mode, edge_mask_type=None)  # set to "object" if you want edge masks
+
+            B = _num_graphs_from_hetero(batche)
+            # Explain each graph in the hetero batch
+            for idx in range(B):
+                tgt = _class_index(label, idx)
+                # IMPORTANT: pass batch_dict as a keyword to match model.forward signature
+                exp = expl(
+                    x_dict,
+                    edge_index_dict,
+                    batch_dict=batch_dict,
+                    index=idx,                # which graph in the batch
+                    target=tgt,              # class index for attribution
+                )
+                samples_explanations.append(exp.cpu())
+
+        else:          # --- Homogeneous graph path ---
+            explainer=explainer_GNN(model,mode)
+            batch=batche.batch
+            x=batche.x
+            edge_index=batche.edge_index
+            hetero_explanation = explainer(
+            x,
+            edge_index,target=label,index=0)
+            hetero_explanation.cpu()
+            samples_explanations.append(hetero_explanation)
+
+    return samples_explanations
