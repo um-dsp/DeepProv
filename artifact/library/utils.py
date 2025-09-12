@@ -427,7 +427,7 @@ def attack_Ember(x):
     return np.array(aux)
 
 # Returns dataset and applies transformation according to parameters
-def get_dataset(dataset_name, categorical=False, model_type='keras',batch_size=64,loader="True",shuffle=True,attack=None):
+def get_dataset(dataset_name, categorical=False, model_type='keras',batch_size=64,loader="True",shuffle=True,attack=None,model_name=""):
     
 
     if(dataset_name == "mnist"):
@@ -462,19 +462,43 @@ def get_dataset(dataset_name, categorical=False, model_type='keras',batch_size=6
             X_train = X_train / 255.0
             X_test = X_test/ 255.0
         if model_type=='pytorch':
-            # Transformations - Convert images to PyTorch tensors and normalize them
-            transform = transforms.Compose(
-                [transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            if model_name=="cifar10_2" or model_name=="cifar10_6" or model_name=="cifar10_5":
+                transform_train = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                ])
 
-            # Load the training and test sets
-            trainset = datasets.CIFAR10(root='./cifar10', train=True,
+                transform_test = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                ])
+
+                trainset = datasets.CIFAR10(
+                    root='./data', train=True, download=True, transform=transform_train)
+                train_loader = torch.utils.data.DataLoader(
+                    trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+
+                testset = datasets.CIFAR10(
+                    root='./data', train=False, download=True, transform=transform_test)
+                test_loader = torch.utils.data.DataLoader(
+                    testset, batch_size=batch_size, shuffle=False, num_workers=2)
+            else:
+
+                # Transformations - Convert images to PyTorch tensors and normalize them
+                transform = transforms.Compose(
+                    [transforms.ToTensor(),
+                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+                # Load the training and test sets
+                trainset = datasets.CIFAR10(root='./cifar10', train=True,
+                                                        download=True, transform=transform)
+                train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
+
+                testset = datasets.CIFAR10(root='./cifar10', train=False,
                                                     download=True, transform=transform)
-            train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
-
-            testset = datasets.CIFAR10(root='./cifar10', train=False,
-                                                download=True, transform=transform)
-            test_loader = DataLoader(testset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
+                test_loader = DataLoader(testset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
     if(dataset_name =="cuckoo"):
         if model_type=="keras":
             df = pd.read_csv("./data/cuckoo.csv",encoding='iso-8859-1')
