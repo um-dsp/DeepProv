@@ -1,4 +1,4 @@
-# DeepProv: Behavioral Characterization and Repair of Neural Networks via Inference Provenance Graphs
+# DeepProv: Behavioral Characterization and Repair of Neural Networks via Inference Provenance Graph Analysis
 
   
 
