@@ -117,16 +117,10 @@ def parseArgs():
 
 if __name__ == "__main__":
     dataset,attack,model_name,folder,mode,ben_threshold,attri_folder= parseArgs()
-    """
-    dataset="mnist"
-    model_name="mnist_1"
-    attack='FGSM'
-    mode="Saliency"
-    folder="Ground_Truth_pth"
-    """
+ 
     print("Loading Attributions and Emperical metrics to select Nodes \n ###########################")
     if dataset=="mnist":
-        attacks=["FGSM","PGD","APGD-DLR","square","SPSA","SIT"]
+        attacks=["FGSM","PGD","APGD-DLR","square","SIT"]
     else:
         attacks=[attack]
     model_path="GNN_"+model_name+"_"+attack+"_pytorch"
@@ -500,7 +494,7 @@ if __name__ == "__main__":
         X_test_all=torch.stack(X)
         Y_test_all=torch.stack(Y)
         if dataset=="mnist":
-            attacks=["FGSM","PGD","APGD-DLR","Square","SPSA","SIT"]
+            attacks=["FGSM","PGD","APGD-DLR","Square","SIT"]
         else:
             attacks=[attack]
         model=load_DP_model(model_name,layer_ind_dims,ben_distr,alpha,beta)
