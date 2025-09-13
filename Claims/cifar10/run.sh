@@ -3,7 +3,7 @@ cd ..
 cd ..
 cd artifact
 set -euo pipefail
-
+MPLBACKEND=Agg
 # ===== Config =====
 ENV_NAME="${ENV_NAME:-deepprov-env}"
 CONDA_HOME="${CONDA_HOME:-$HOME/miniconda3}"
