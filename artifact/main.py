@@ -120,7 +120,7 @@ if __name__ == "__main__":
  
     print("Loading Attributions and Emperical metrics to select Nodes \n ###########################")
     if dataset=="mnist":
-        attacks=["FGSM","PGD","APGD-DLR","square","SIT"]
+        attacks=["FGSM","PGD","APGD-DLR","Square","SIT"]
     else:
         attacks=[attack]
     model_path="GNN_"+model_name+"_"+attack+"_pytorch"
@@ -437,8 +437,7 @@ if __name__ == "__main__":
     with open('./data/alpha_output_'+dataset+'.pickle', 'wb') as handle:
         pickle.dump(alpha_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
     model = get_model(model_name,model_type="pytorch")
-    X_advs,X,acc_ben,acc_adv=test_robustness(model,X_test_all,Y_test_all,attack,device)
-    acc_all_ben,acc_all_adv=acc_ben,acc_adv
+    acc_all_ben,acc_all_adv=acc_or,acc_un_a
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Combining the best actions sequence between different layers \n ###########################")
