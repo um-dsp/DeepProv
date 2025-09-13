@@ -43,7 +43,7 @@ EPOCHS=25
 EXPLA_MODE="Saliency"
 
 # List your six attacks here (use your exact names)
-ATTACKS=(FGSM PGD APGD-DLR Square SPSA SIT)
+ATTACKS=(FGSM PGD APGD-DLR Square  SIT)
 # ------------------------------------------------
 
 timestamp() { date +"%Y-%m-%d %H:%M:%S"; }
