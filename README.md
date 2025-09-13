@@ -31,3 +31,4 @@ chmod 0755 install.sh
 ```
 To reproduce the paper’s results, visit the Claims/ folder and run the corresponding run.sh files.
 
+For the public infrastructure, we support Google Colab. To reproduce the experiments use the link to the  notebook on google colab in the file infrastructure/info.txt
