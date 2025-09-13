@@ -15,7 +15,9 @@ In this repository, we include code and notebooks related to *DeepProv*—infere
 - **Pre-trained Models**: We provide pre-trained models (`mnist`, `cuckoo_1`, `ember_1`, `cifar10_2`). These models are available in `artifact/models/`.
 
 - **Supported Attacks**: As of now, *DeepProv* supports the following attacks:<br />
-  - **MNIST**: Fast Gradient Sign Method (FGSM), Projected Gradient Descent (PGD), Auto-PGD with DLR loss (APGD-DLR), Square, SPSA, and SIT.<br />
+  - **MNIST**: Fast Gradient Sign Method (FGSM), Projected Gradient Descent (PGD), Auto-PGD with DLR loss (APGD-DLR), Square, and SIT.<br />
+  - **CIFAR10**: Fast Gradient Sign Method (FGSM) We skip the rest of the attacks since they are demonstrated in MNIST and they are heavy, they will take more than 1400 minutes as stated in the paper appendix about the computation overhead.
+Due to RAM size restrictions, we pre-computed the graphs for cifar10 and did the emperical and structural analysis as well as we generated the benign distribution to repair the model and saved these proxies to showcase the repair part only for cifar10 on FGSM,<br />
   - **CuckooTraces**: *Bit-Flip* — incrementally flips `0` bits to `1`, starting from the first one in a feature vector until model evasion is observed.<br />
   - **EMBER**: *Emb-Att* — incrementally perturbs features within valid value ranges/options until model evasion is observed.<br />
 
