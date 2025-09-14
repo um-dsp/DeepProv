@@ -48,7 +48,7 @@ When prompted for a password, **use your own GitHub Personal Access Token (PAT)*
 To list the files tracked by LFS:
 ```bash
 git lfs ls-files
-
+```
 
 To install the requirements and set up the environment to run the experiments:
 ```bash
