@@ -144,7 +144,7 @@ else
 fi
 
 # Create standard folders if missing
-mkdir -p  data/attributions_data
+mkdir -p  artifact/data/attributions_data Claims/ember/expected  Claims/cuckoo/expected  Claims/cifar10/expected  Claims/mnist/expected
 
 # Machine summary (run inside env)
 _crun python - <<'PY'
