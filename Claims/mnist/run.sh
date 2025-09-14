@@ -5,8 +5,7 @@ set -euo pipefail
 cd ..; cd ..; cd artifact
 
 # Use non-interactive matplotlib backend
-export MPLBACKEND=Agg
-
+MPLBACKEND=Agg
 # ===== Config =====
 ENV_NAME="${ENV_NAME:-deepprov-env}"
 CONDA_HOME="${CONDA_HOME:-$HOME/miniconda3}"
