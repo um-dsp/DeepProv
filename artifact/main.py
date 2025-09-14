@@ -132,22 +132,22 @@ if __name__ == "__main__":
     activations_pth=get_activations_pth(trainset[0][0], model,task="default",act_thr=0)
     layer_dims=[[layer.shape[1]," layer "+str(i)] for i,layer in enumerate(activations_pth[:-1])]
     x_axis=[i for i in range(nb_nodes)]
-
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("\n")
+    print("\n")
+    print("Empirical and Structural  Characterization ")
+    print("\n")
+    print("\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
     nodes_weights_ben,nodes_act_ben=load_attri(dataset,model_name,folder,mode,None,all_nodes,model_path,nb_nodes,attri_folder)
     nodes_weights_adv,nodes_act_adv=load_attri(dataset,model_name,folder,mode,attack,all_nodes,model_path,nb_nodes,attri_folder)
     layers_nodes_freq={}
     index=0
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("\n")
-    print("\n")
-    print("Empirical Characterization")
-    print("\n")
-    print("\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
+
     for layer_dim in layer_dims:
         dim=layer_dim[0]
         values_set1 = [[torch.Tensor(i)[torch.Tensor(i)!=0].shape[0]]  for i in nodes_act_ben[index:dim+index]]
@@ -191,17 +191,6 @@ if __name__ == "__main__":
     index=0
     attri_vals_ben=[]
     attri_vals_adv=[]
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("\n")
-    print("\n")
-    print("Structural Characterization")
-    print("\n")
-    print("\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
-    print("#############################################################################\n")
     for layer_dim in layer_dims:
         dim=layer_dim[0]
         values_set1 = [float(torch.Tensor(i)[torch.Tensor(i)!=0].mean().detach().numpy()) if len(torch.Tensor(i)[torch.Tensor(i)!=0])>0 else 0.0  for i in nodes_weights_ben[index:dim+index]]
