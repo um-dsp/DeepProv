@@ -137,6 +137,7 @@ if __name__ == "__main__":
     nodes_weights_adv,nodes_act_adv=load_attri(dataset,model_name,folder,mode,attack,all_nodes,model_path,nb_nodes,attri_folder)
     layers_nodes_freq={}
     index=0
+    
     for layer_dim in layer_dims:
         dim=layer_dim[0]
         values_set1 = [[torch.Tensor(i)[torch.Tensor(i)!=0].shape[0]]  for i in nodes_act_ben[index:dim+index]]
