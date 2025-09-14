@@ -334,7 +334,7 @@ if __name__ == "__main__":
                         X=X_adv
                         break
             
-            dataset_loader=[(x,y) for x,y in zip(X,Y)]
+            dataset_loader=[(x,y) for x,y in zip(X[:(i + 1) * batch_size],Y[:(i + 1) * batch_size])]
             dataset_loader= DataLoader(dataset_loader, batch_size=200, shuffle=True)
             evaluate_model(model,dataset_loader,device=device)
     if task=="graph" :
