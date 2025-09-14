@@ -137,7 +137,17 @@ if __name__ == "__main__":
     nodes_weights_adv,nodes_act_adv=load_attri(dataset,model_name,folder,mode,attack,all_nodes,model_path,nb_nodes,attri_folder)
     layers_nodes_freq={}
     index=0
-    
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("\n")
+    print("\n")
+    print("Empirical Characterization")
+    print("\n")
+    print("\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
     for layer_dim in layer_dims:
         dim=layer_dim[0]
         values_set1 = [[torch.Tensor(i)[torch.Tensor(i)!=0].shape[0]]  for i in nodes_act_ben[index:dim+index]]
@@ -181,6 +191,17 @@ if __name__ == "__main__":
     index=0
     attri_vals_ben=[]
     attri_vals_adv=[]
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("\n")
+    print("\n")
+    print("Structural Characterization")
+    print("\n")
+    print("\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
     for layer_dim in layer_dims:
         dim=layer_dim[0]
         values_set1 = [float(torch.Tensor(i)[torch.Tensor(i)!=0].mean().detach().numpy()) if len(torch.Tensor(i)[torch.Tensor(i)!=0])>0 else 0.0  for i in nodes_weights_ben[index:dim+index]]
@@ -245,7 +266,17 @@ if __name__ == "__main__":
     with open('./data/data_layers'+dataset+'.pickle', 'wb') as handle:
         pickle.dump(data_layers, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("\n")
+    print("\n")
+    print("Model Repair")
+    print("\n")
+    print("\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
+    print("#############################################################################\n")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     X_test_sample_bal={'mnist':1000,'ember':500000,'cuckoo':3000}
     X_train_sample_bal={'mnist':1000,'ember':10000,'cuckoo':10000}
