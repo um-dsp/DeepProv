@@ -24,6 +24,32 @@ Due to RAM size restrictions, we pre-computed the graphs for cifar10 and did the
 More details about the supported attacks are provided in the paper.
 
 ### Installation
+## Clone the repo (with Git LFS)
+
+This repository uses **Git LFS** for large artifacts (models, pickles, precomputed graphs). To get the full repository including all large files, follow these steps.
+
+### Option A — Clone over HTTPS (requires your own GitHub token)
+```bash
+# 1) Install Git LFS (one-time setup on your machine)
+git lfs install
+
+# 2) Clone the repository
+git clone https://github.com/um-dsp/DeepProv.git
+cd DeepProv
+
+# 3) Pull large files tracked by LFS (you may be prompted to authenticate)
+git lfs pull
+```
+When prompted for a password, **use your own GitHub Personal Access Token (PAT)** (not your password).
+- For public repositories, a token with **Read access to contents** is sufficient.
+- You can create a fine-grained token at [https://github.com/settings/tokens](https://github.com/settings/tokens).
+
+### Verify LFS
+To list the files tracked by LFS:
+```bash
+git lfs ls-files
+
+
 To install the requirements and set up the environment to run the experiments:
 ```bash
 chmod 0755 install.sh
