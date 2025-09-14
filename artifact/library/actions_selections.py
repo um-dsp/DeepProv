@@ -211,7 +211,7 @@ def check_balance(balance_class,y,nbr_samples_per_class):
 
 def test_robustness(model,X,Y,attack,device,batch_size=1000,X_adv=None):
     model=model.to(device)
-    if attack=="EMBER":
+    if attack=="Emb-Att":
         X_ben=X.clone()
         import pickle
         with open('./data/scaleremb.pickle', 'rb') as handle:
