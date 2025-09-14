@@ -656,7 +656,7 @@ def evaluate_model(model, test_loader,device='cpu'):
             
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct / total
-    print(f'Accuracy of the model on the test images: {accuracy}%')
+    print(f'Accuracy of the model on the test inputs: {accuracy}%')
 def train_cuckoo(train_loader):
     model = MLPClassifierPyTorch()
     criterion = nn.BCEWithLogitsLoss()  # Updated loss function for binary classification
