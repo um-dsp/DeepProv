@@ -28,7 +28,7 @@ More details about the supported attacks are provided in the paper.
 
 This repository uses **Git LFS** for large artifacts (models, pickles, precomputed graphs). To get the full repository including all large files, follow these steps.
 
-### Option A — Clone over HTTPS (requires your own GitHub token)
+### Clone over HTTPS (requires your own GitHub token)
 ```bash
 # 1) Install Git LFS (one-time setup on your machine)
 git lfs install
