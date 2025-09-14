@@ -34,6 +34,7 @@ model_name="cifar10_2"
 attack='FGSM'
 model_path="GNN_cifar10_2_FGSM_pytorch"
 mode="Saliency"
+print("Loading Attributions and Emperical metrics to select Nodes \n ###########################")
 print("#############################################################################\n")
 print("#############################################################################\n")
 print("#############################################################################\n")
@@ -142,8 +143,9 @@ for i,x in enumerate(X_t):
     X.append(X_t[i])
 X_test_all=torch.stack(X)
 Y_test_all=torch.stack(Y)
-
+print("Generating the attack \n ###########################")
 X_adv,X_test,acc_or,acc_un_a=test_robustness(model,X_test,Y_test,attack,device,batch_size=batch_size)
+print("ben acc :",acc_or," adv acc:", acc_un_a)
 acc_un_a_all=0
 acc_or_all=0
 epsilon=0.05
@@ -161,6 +163,7 @@ selected_layers=[" layer "+str(j) for j in range(len(layer_dims))]#possible valu
 
 #extract_ben_dist This function extract the benign distribution 
 model.cuda()
+print("Computing Benign Distribution on the Selcted Nodes \n ###########################")
 layers_act,distribution_ben,layers_act_std,layer_dims=extract_ben_dist(model,X_train,Y_train,layer_dims,sample_bal=1)
 
 
@@ -311,7 +314,7 @@ class ResNet(nn.Module):
         return(x)
 def ResNet_mod(specific_indices,distribution_ben,alpha,beta):
     return ResNet(BasicBlock, [2, 2, 2, 2], specific_indices,distribution_ben,alpha,beta)
-
+print("Robustness Enhancement Process \n ###########################")
 ben_threshold=0
 only_adv=True
 
@@ -443,7 +446,7 @@ acc_all_ben,acc_all_adv=acc_ben,acc_adv
 acc_all_ben,acc_all_adv=acc_or,acc_un_a
 df=pd.DataFrame(data=[[len(alpha_output[selected_layer][alpha][2][selected_layer]),max(alpha_output[selected_layer][alpha][1]),alpha_output[selected_layer][alpha][0][alpha_output[selected_layer][alpha][1].index(max(alpha_output[selected_layer][alpha][1]))], max(alpha_output[selected_layer][alpha][1])+alpha_output[selected_layer][alpha][0][alpha_output[selected_layer][alpha][1].index(max(alpha_output[selected_layer][alpha][1]))]-acc_all_ben-acc_all_adv] for selected_layer in selected_layers],columns=["Number action","Acc Adv","Acc ben","trade-off"])
 acc_on_adv= df["Acc Adv"][:12]
-
+print("Combining the best actions sequence between different layers \n ###########################")
 from itertools import permutations
 sorted_lists = sorted(zip(acc_on_adv,[j for j in range(len(acc_on_adv))]), key=lambda x: x[0],reverse=True)
 all_permutations =[[j[1] for j in sorted_lists]]
