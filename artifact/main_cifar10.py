@@ -34,8 +34,17 @@ model_name="cifar10_2"
 attack='FGSM'
 model_path="GNN_cifar10_2_FGSM_pytorch"
 mode="Saliency"
-
-# --- [Code cell 4] ---
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("\n")
+print("\n")
+print("IPG Extraction is done priorly due to RAM size limitations ")
+print("\n")
+print("\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
 trainset,testset=get_dataset(dataset,False,model_type="pytorch",shuffle=False,loader=False,model_name=model_name)
 model = get_model(model_name,model_type="pytorch")
 all_nodes=get_activations_pth(trainset[0][0], model,dim="",task="graph",model_type="pytorch", mode="all_nodes",conv_exist=True)
@@ -63,13 +72,22 @@ all_nodes_dict={all_nodes[i]:i for i in range(len(all_nodes))}
 x_axis=[i for i in range(nb_nodes)]
 
 import pickle
-
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("\n")
+print("\n")
+print("Empirical and Structural Characterization and Empirical")
+print("\n")
+print("\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
 with open('data/selected_nodes_cifar10_2.pickle', 'rb') as handle:
     selected_nodes= pickle.load(handle)
 with open('data/beta_cifar10_2.pickle', 'rb') as handle:
     beta= pickle.load(handle)
 
-# --- [Code cell 19] ---
 from library.utils import get_dataset,get_activations_pth,generate_attack
 from library.train import get_model
 from torch_geometric.loader import DataLoader
@@ -87,7 +105,17 @@ from keras import backend as K
 import tensorflow as tf
 from argparse import ArgumentParser
 from tqdm import tqdm
-
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("\n")
+print("\n")
+print("Model Repiar")
+print("\n")
+print("\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
+print("#############################################################################\n")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 batch_size=64
 model = get_model(model_name,model_type="pytorch")
