@@ -379,7 +379,6 @@ for alpha in [1.0]:
         trade_off=[]
         acc_ben_or=acc_or
         sorted_actions=set_ind[selected_layer].copy()
-        print(len(sorted_actions))
         sorted_vals=effi_values.copy()
         for j in set_ind[selected_layer]:
             stop=False
