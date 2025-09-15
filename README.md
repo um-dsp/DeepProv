@@ -1,8 +1,8 @@
 # DeepProv: Behavioral Characterization and Repair of Neural Networks via Inference Provenance Graph Analysis
 
   
-
-In this repository, we include code and notebooks related to *DeepProv*—inference provenance capture and characterization for deep neural networks. In particular, we instantiate *DeepProv* to capture provenance under both benign and adversarial settings, supporting robustness analysis and model repair. In line with the paper, we consider multiple DNN models for image classification (e.g., MNIST) and malware detection models (e.g., CuckooTraces, EMBER).<br />
+This repository contains the  reprodicable implementation of the paper **[DeepProv: Behavioral Characterization and Repair of Neural Networks via
+Inference Provenance Graph Analysis](https://github.com/um-dsp/DeepProv/blob/main/DeepProv-ACSAC2025.pdf)**. DeepProv is a novel system that captures a DNN's inference on an input as an inference provenance graph (IPGs). Using the IPG representation, it captures the computational information flow/causality of inference. It then uses IPGs of different settings (e.g., that of benign and adversarial) to empirically and structurally characterize IPGs. Finally, using the IPG characterizations as inference provenance insights, it systematically repairs the DNN given a repair goal (e.g., adversarial robustness). With adversarial robustness as the repair goal, we demonstrate its effectiveness on image classification (MNIST and CIFAR-10) and malware detection (EMBER and CuckooTraces).<br />
 
 ### Datasets, Pre-trained Models, and Attacks
 
@@ -16,7 +16,7 @@ In this repository, we include code and notebooks related to *DeepProv*—infere
 
 - **Supported Attacks**: As of now, *DeepProv* supports the following attacks:<br />
   - **MNIST**: Fast Gradient Sign Method (FGSM), Projected Gradient Descent (PGD), Auto-PGD with DLR loss (APGD-DLR), Square, and SIT.<br />
-  - **CIFAR10**: Fast Gradient Sign Method (FGSM) We skip the rest of the attacks since they are demonstrated in MNIST and they are heavy, they will take more than 1400 minutes as stated in the paper appendix about the computation overhead.
+  - **CIFAR10**: Fast Gradient Sign Method (FGSM). We skip the rest of the attacks since they are demonstrated in MNIST and they are heavy, they will take more than 1400 minutes as stated in the paper appendix about the computation overhead.
 Due to RAM size restrictions, we pre-computed the graphs for cifar10 and did the emperical and structural analysis as well as we generated the benign distribution to repair the model and saved these proxies to showcase the repair part only for cifar10 on FGSM,<br />
   - **CuckooTraces**: *Bit-Flip* — incrementally flips `0` bits to `1`, starting from the first one in a feature vector until model evasion is observed.<br />
   - **EMBER**: *Emb-Att* — incrementally perturbs features within valid value ranges/options until model evasion is observed.<br />
