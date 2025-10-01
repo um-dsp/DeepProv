@@ -2,7 +2,7 @@
 
   
 This repository contains the  reprodicable implementation of the paper **[DeepProv: Behavioral Characterization and Repair of Neural Networks via
-Inference Provenance Graph Analysis](https://github.com/um-dsp/DeepProv/blob/main/DeepProv-ACSAC2025.pdf)**. DeepProv is a novel system that captures a DNN's inference on an input as an inference provenance graph (IPGs). Using the IPG representation, it captures the computational information flow/causality of inference. It then uses IPGs of different settings (e.g., that of benign and adversarial) to empirically and structurally characterize IPGs. Finally, using the IPG characterizations as inference provenance insights, it systematically repairs the DNN given a repair goal (e.g., adversarial robustness). With adversarial robustness as the repair goal, we demonstrate its effectiveness on image classification (MNIST and CIFAR-10) and malware detection (EMBER and CuckooTraces).<br />
+Inference Provenance Graph Analysis](https://arxiv.org/pdf/2509.26562)**. DeepProv is a novel system that captures a DNN's inference on an input as an inference provenance graph (IPGs). Using the IPG representation, it captures the computational information flow/causality of inference. It then uses IPGs of different settings (e.g., that of benign and adversarial) to empirically and structurally characterize IPGs. Finally, using the IPG characterizations as inference provenance insights, it systematically repairs the DNN given a repair goal (e.g., adversarial robustness). With adversarial robustness as the repair goal, we demonstrate its effectiveness on image classification (MNIST and CIFAR-10) and malware detection (EMBER and CuckooTraces).<br />
 
 ### Datasets, Pre-trained Models, and Attacks
 
