@@ -58,3 +58,15 @@ chmod 0755 install.sh
 To reproduce the paper’s results, visit the Claims/ folder and run the corresponding run.sh files.
 
 For the public infrastructure, we support Google Colab. To reproduce the experiments use the link to the  notebook on google colab in the file infrastructure/info.txt
+
+
+## Citation
+
+```bibtex
+@inproceedings{BHmida2025deepprov,
+  author    = {Firas Ben Hmida, Abderrahmen Amich, Ata Kaboudi, Birhanu Eshete},
+  title     = {DeepProv: Behavioral Characterization and Repair of Neural Networks via Inference Provenance Graph Analysis},
+  booktitle = {Proceedings of the 2025 IEEE Annual Computer Security Applications Conference, {ACSAC}},
+  year      = {2025}
+}
+```
